@@ -20,14 +20,14 @@ n_vocab = len(chars)
 print ("Total Characters: ", n_chars)
 print ("Total Vocab: ", n_vocab)
 # prepare the dataset of input to output pairs encoded as integers
-seq_length = 100
+seq_length = 20
 dataX = []
 dataY = []
 for i in range(0, n_chars - seq_length, 1):
 	seq_in = raw_text[i:i + seq_length]
-	seq_out = raw_text[i + seq_length]
+	seq_out = raw_text[i + seq_length: i + 2*seq_length]
 	dataX.append([char_to_int[char] for char in seq_in])
-	dataY.append(char_to_int[seq_out])
+	dataY.append([char_to_int[char] for char in seq_out])
 n_patterns = len(dataX)
 print ("Total Patterns: ", n_patterns)
 # reshape X to be [samples, time steps, features]
@@ -44,7 +44,7 @@ model.add(LSTM(256))
 model.add(Dropout(0.2))
 model.add(Dense(y.shape[1], activation='softmax'))
 # load the network weights
-filename = "weights-improvement-01-2.8911-bigger.hdf5"
+filename = "weights.hdf5"
 model.load_weights(filename)
 model.compile(loss='categorical_crossentropy', optimizer='adam')
 # pick a random seed
@@ -53,7 +53,7 @@ pattern = dataX[start]
 print ("Seed:")
 print ("\"", ''.join([int_to_char[value] for value in pattern]), "\"")
 # generate characters
-for i in range(1000):
+for i in range(20):
 	x = numpy.reshape(pattern, (1, len(pattern), 1))
 	x = x / float(n_vocab)
 	prediction = model.predict(x, verbose=0)
