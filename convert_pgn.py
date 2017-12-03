@@ -27,7 +27,7 @@ class GameConvertor(chess.pgn.BaseVisitor):
             self.boards.append(board_to_string(board))
 
     def to_string(self):
-        return "\n".join(self.boards)
+        return "".join(self.boards)
 
 
 def load_games(pgn_file_name):
@@ -36,6 +36,8 @@ def load_games(pgn_file_name):
             game = chess.pgn.read_game(pgn)
             if game:
                 yield game
+            else:
+                return
 
 
 def main():
