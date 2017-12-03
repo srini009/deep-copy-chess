@@ -22,7 +22,7 @@ n_vocab = len(chars)
 print ("Total Characters: ", n_chars)
 print ("Total Vocab: ", n_vocab)
 # prepare the dataset of input to output pairs encoded as integers
-seq_length = 20
+seq_length = 1
 dataX = []
 dataY = []
 for i in range(0, n_chars - 10*seq_length, 1):
@@ -36,15 +36,18 @@ print ("Total Patterns: ", n_patterns)
 
 # reshape X to be [samples, time steps, features]
 n_output_patterns = len(dataY)
-X = numpy.reshape(dataX, (n_patterns, seq_length, 1))
+X = numpy.reshape(dataX, (n_patterns, 1, seq_length))
 # normalize
 X = X / float(n_vocab)
-Y = numpy.reshape(dataY, (n_patterns, seq_length, 1))
+Y = numpy.reshape(dataY, (n_patterns, seq_length))
 Y = Y / float(n_vocab)
 # create LSTM
 model = Sequential()
-model.add(LSTM(seq_length, input_shape=(seq_length, 1), return_sequences=True))
-model.add(TimeDistributed(Dense(1)))
+model.add(LSTM(256, input_shape=(1, seq_length), return_sequences=True))
+model.add(Dropout(0.2))
+model.add(LSTM(256))
+model.add(Dropout(0.2))
+model.add((Dense(seq_length, activation='linear')))
 model.compile(loss='mean_squared_error', optimizer='adam')
 
 print(model.summary())
@@ -54,7 +57,7 @@ filepath="weights.hdf5"
 checkpoint = ModelCheckpoint(filepath, monitor='loss', verbose=1, save_best_only=True, mode='min')
 callbacks_list = [checkpoint]
 
-model.fit(X, Y, epochs=5, batch_size=64, verbose=2)
+model.fit(X, Y, epochs=10, batch_size=128, verbose=2)
 
 
 #Generate stuff
