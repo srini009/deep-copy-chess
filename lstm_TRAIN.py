@@ -28,7 +28,10 @@ def create_bidict(individual_moves):
 	for index, move in enumerate(unique_moves):
 		b[move] = index
 		b.inv[index] = move
-	return b
+		if(move == 'rnbqkbnrpppppppp................................PPPPPPPPRNBQKBNR'):
+			start_move_index = index
+			print ("Start index: ", start_move_index)
+	return [b, start_move_index]
 
 raw_text = read_files("data/converted/elo2000")
 individual_moves = [raw_text[i:i+64] for i in range(0, len(raw_text), 64)]
@@ -37,7 +40,8 @@ individual_moves = [raw_text[i:i+64] for i in range(0, len(raw_text), 64)]
 n_chars = len(raw_text)
 n_individual_moves = len(individual_moves)
 #Artifical limit
-n_individual_moves = 5
+n_individual_moves = 20
+individual_moves = individual_moves[0:n_individual_moves]
 #n_vocab = len(chars)
 print ("Total Characters: ", n_chars)
 print ("Total Moves: ", n_individual_moves)
@@ -47,7 +51,7 @@ print ("Total Moves: ", n_individual_moves)
 #	print ("Number of characters is not divisible by 64. Check data!")
 #	raise
 
-move_bidict = create_bidict(individual_moves)
+[move_bidict, start_move_index] = create_bidict(individual_moves)
 
 # prepare the dataset of input to output pairs encoded as integers
 seq_length = 1
@@ -58,6 +62,10 @@ for i in range(0, n_individual_moves - seq_length, 1):
 	seq_out = individual_moves[i + seq_length]
 	dataX.append([move_bidict[move] for move in seq_in])
 	dataY.append(move_bidict[seq_out])
+	#Remove moves that lead to the starting board position
+	if move_bidict[seq_out] == start_move_index:
+		del dataX[-1]
+		del dataY[-1]
 
 n_patterns = len(dataX)
 print ("Total Patterns: ", n_patterns)
@@ -69,7 +77,7 @@ X = X / float(len(move_bidict))
 y = np_utils.to_categorical(dataY)
 # define the LSTM model
 model = Sequential()
-model.add(LSTM(5, input_shape=(X.shape[1], X.shape[2])))
+model.add(LSTM(20, input_shape=(X.shape[1], X.shape[2])))
 #model.add(Dropout(0.2))
 #model.add(LSTM(100))
 #model.add(Dropout(0.2))
@@ -80,11 +88,13 @@ filepath="weights.hdf5"
 checkpoint = ModelCheckpoint(filepath, monitor='loss', verbose=1, save_best_only=True, mode='min')
 callbacks_list = [checkpoint]
 # fit the model
-model.fit(X, y, epochs=1000, batch_size=1, callbacks=callbacks_list)
+model.fit(X, y, epochs=2000, batch_size=1, callbacks=callbacks_list)
 
 #Generate
-pattern = dataX[0]
+pattern = dataX[3]
 print ("Selected input pattern ID and string: ", pattern, move_bidict.inv[pattern[0]])
+print ("Input: ", [move_bidict.inv[x[0]] for x in dataX])
+print ("Output: ", [move_bidict.inv[x] for x in dataY])
 
 x = numpy.reshape(pattern, (1, len(pattern), 1))
 x = x / float(len(move_bidict))
