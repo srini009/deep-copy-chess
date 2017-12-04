@@ -28,7 +28,6 @@ def create_bidict(individual_moves):
 	for index, move in enumerate(unique_moves):
 		b[move] = index
 		b.inv[index] = move
-		print(index)
 	return b
 
 raw_text = read_files("data/converted/elo2000")
@@ -38,7 +37,7 @@ individual_moves = [raw_text[i:i+64] for i in range(0, len(raw_text), 64)]
 n_chars = len(raw_text)
 n_individual_moves = len(individual_moves)
 #Artifical limit
-n_individual_moves = 50
+n_individual_moves = 5
 #n_vocab = len(chars)
 print ("Total Characters: ", n_chars)
 print ("Total Moves: ", n_individual_moves)
@@ -62,7 +61,6 @@ for i in range(0, n_individual_moves - seq_length, 1):
 
 n_patterns = len(dataX)
 print ("Total Patterns: ", n_patterns)
-print 
 # reshape X to be [samples, time steps, features]
 X = numpy.reshape(dataX, (n_patterns, seq_length, 1))
 # normalize
@@ -82,8 +80,17 @@ filepath="weights.hdf5"
 checkpoint = ModelCheckpoint(filepath, monitor='loss', verbose=1, save_best_only=True, mode='min')
 callbacks_list = [checkpoint]
 # fit the model
-model.fit(X, y, epochs=10, batch_size=1, callbacks=callbacks_list)
+model.fit(X, y, epochs=1000, batch_size=1, callbacks=callbacks_list)
 
 #Generate
 pattern = dataX[0]
-print ("Selected pattern ID and string: ", pattern, move_bidict.inv[pattern[0]])
+print ("Selected input pattern ID and string: ", pattern, move_bidict.inv[pattern[0]])
+
+x = numpy.reshape(pattern, (1, len(pattern), 1))
+x = x / float(len(move_bidict))
+prediction = model.predict(x, verbose=0)
+index = numpy.argmax(prediction)
+result = move_bidict.inv[index]
+print ("Predicted board: ", result)
+
+print ("\nDone.")
