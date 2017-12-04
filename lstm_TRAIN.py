@@ -1,24 +1,35 @@
-import numpy
+import numpy, os
 from keras.models import Sequential
 from keras.layers import Dense
 from keras.layers import Dropout
 from keras.layers import LSTM
 from keras.callbacks import ModelCheckpoint
 from keras.utils import np_utils
-# load ascii text and covert to lowercase
-filename = "wonderland.txt"
-raw_text = open(filename).read()
-raw_text = raw_text.lower()
-# create mapping of unique chars to integers
-chars = sorted(list(set(raw_text)))
-char_to_int = dict((c, i) for i, c in enumerate(chars))
+
+def read_and_concat_all_games(filepaths):
+	game_list = []
+	for file_ in filepaths:
+		f = open(file_)
+		game_list.extend(f.read().split("\n"))
+		game_list.pop()
+	return "".join(game_list)
+
+def read_files(path):
+	filelist = os.listdir(path)
+	filepaths = [path + "/" + x for x in filelist]
+	return read_and_concat_all_games(filepaths)
+
+raw_text = read_files("data/converted/elo10001600")
+
+#chars = sorted(list(set(raw_text)))
 # summarize the loaded data
 n_chars = len(raw_text)
-n_vocab = len(chars)
-print "Total Characters: ", n_chars
-print "Total Vocab: ", n_vocab
+#n_vocab = len(chars)
+print ("Total Characters: ", n_chars)
+#print ("Total Vocab: ", n_vocab)
+
 # prepare the dataset of input to output pairs encoded as integers
-seq_length = 100
+seq_length = 64
 dataX = []
 dataY = []
 for i in range(0, n_chars - seq_length, 1):
@@ -27,7 +38,7 @@ for i in range(0, n_chars - seq_length, 1):
 	dataX.append([char_to_int[char] for char in seq_in])
 	dataY.append(char_to_int[seq_out])
 n_patterns = len(dataX)
-print "Total Patterns: ", n_patterns
+print ("Total Patterns: ", n_patterns)
 # reshape X to be [samples, time steps, features]
 X = numpy.reshape(dataX, (n_patterns, seq_length, 1))
 # normalize
