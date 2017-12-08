@@ -1,3 +1,5 @@
+import chess
+import chess.svg
 import collections
 import os
 import sys
@@ -22,12 +24,30 @@ def count_unique_boards(dir_path):
                     boards[board] += 1
     return sum(boards.values())
 
+
+def string_to_board(combined_board):
+    board = chess.Board()
+    board.reset_board()
+    board_lines = textwrap.wrap(combined_board, 8)
+    for r, row_line in enumerate(board_lines):
+        for c, piece_str in enumerate(row_line):
+            index = (7 - r) * 8 + c
+            piece = None if piece_str == "." else chess.Piece.from_symbol(piece_str)
+            board.set_piece_at(index, piece)
+    return board
+
+
+def board_to_svg(board, file_name):
+    svg = chess.svg.board(board=board, size=800)
+    with open(file_name, 'w') as svg_file:
+        svg_file.write(svg)
+
+
 def main():
-    if len(sys.argv) < 2:
-        print("Usage: {} <path_of_txts>".format(sys.argv[1]))
+    if len(sys.argv) < 3:
+        print("Usage: {} <board_str> <svg_file_name>".format(sys.argv[0]))
         sys.exit(1)
-    dir_path = sys.argv[1]
-    print(count_unique_boards(dir_path))
+    board_to_svg(string_to_board(sys.argv[1]), sys.argv[2])
 
 
 if __name__ == '__main__':
