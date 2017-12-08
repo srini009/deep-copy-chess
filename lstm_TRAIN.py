@@ -26,8 +26,6 @@ def read_files(path):
 def create_bidict(individual_moves):
 	start_move_index = -1
 	b = bidict()
-	#unique_moves = set(individual_moves)
-	#print("Num unique moves: ", len(unique_moves))
 	index = 0
 
 	for move in individual_moves:
@@ -48,21 +46,16 @@ individual_moves = [raw_text[i:i+64] for i in range(0, len(raw_text), 64)]
 n_chars = len(raw_text)
 n_individual_moves = len(individual_moves)
 #Artifical limit
-n_individual_moves = 300
+n_individual_moves = 3000
 individual_moves = individual_moves[0:n_individual_moves]
 #n_vocab = len(chars)
 print ("Total Characters: ", n_chars)
 print ("Total Moves: ", n_individual_moves)
 
-#Basic sanity for data
-#if (n_chars != n_individual_moves*64):
-#	print ("Number of characters is not divisible by 64. Check data!")
-#	raise
-
 move_bidict, start_move_index = create_bidict(individual_moves)
 
 # prepare the dataset of input to output pairs encoded as integers
-seq_length = 3
+seq_length = 7
 dataX = []
 dataY = []
 for i in range(0, n_individual_moves - seq_length, 1):
@@ -91,23 +84,13 @@ model.add(LSTM(250))
 model.add(Dropout(0.2))
 model.add(Dense(y.shape[1], activation='softmax'))
 # define the checkpoint
-filepath="weights.hdf5"
+filepath="weights_2000.hdf5"
 # fit the model
 if(sys.argv[1] == 'T'):
 	checkpoint = ModelCheckpoint(filepath, monitor='loss', verbose=1, save_best_only=True, mode='min')
 	callbacks_list = [checkpoint]
 	model.compile(loss='categorical_crossentropy', optimizer='adam')	
-	model.fit(X, y, epochs=800, batch_size=8, callbacks=callbacks_list)
-	pattern = dataX[15]
-	print ("Selected input pattern ID and string: ", pattern, [move_bidict.inv[x] for x in pattern])
-
-	x = numpy.reshape(pattern, (1, len(pattern), 1))
-	x = x / float(len(move_bidict))
-	prediction = model.predict(x, verbose=0)
-	index = numpy.argmax(prediction)
-	result = move_bidict.inv[index]
-	print ("Predicted board: ", result)
-	
+	model.fit(X, y, epochs=200, batch_size=8, callbacks=callbacks_list)
 #Generate
 else:
 	model.load_weights(filepath)
