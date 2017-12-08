@@ -1,5 +1,5 @@
 #Training hyperparameters
-#2000+: 3000 moves, 7 sequence, 300 epochs, 2 LSTM layers of 250 neurons each, batch size as 8, dropout of 0.2
+#2000+: 300 moves, 7 sequence, 400 epochs, 2 LSTM layers of 250 neurons each, batch size as 8, dropout of 0.2
 import numpy, os, sys
 from keras.models import Sequential
 from keras.layers import Dense
@@ -46,7 +46,7 @@ individual_moves = [raw_text[i:i+64] for i in range(0, len(raw_text), 64)]
 n_chars = len(raw_text)
 n_individual_moves = len(individual_moves)
 #Artifical limit
-n_individual_moves = 3000
+n_individual_moves = 300
 individual_moves = individual_moves[0:n_individual_moves]
 #n_vocab = len(chars)
 print ("Total Characters: ", n_chars)
@@ -90,12 +90,12 @@ if(sys.argv[1] == 'T'):
 	checkpoint = ModelCheckpoint(filepath, monitor='loss', verbose=1, save_best_only=True, mode='min')
 	callbacks_list = [checkpoint]
 	model.compile(loss='categorical_crossentropy', optimizer='adam')	
-	model.fit(X, y, epochs=200, batch_size=8, callbacks=callbacks_list)
+	model.fit(X, y, epochs=400, batch_size=8, callbacks=callbacks_list)
 #Generate
 else:
 	model.load_weights(filepath)
 	model.compile(loss='categorical_crossentropy', optimizer='adam')
-	pattern = dataX[15]
+	pattern = dataX[0]
 	print ("Selected input pattern ID and string: ", pattern, [move_bidict.inv[x] for x in pattern])
 
 	x = numpy.reshape(pattern, (1, len(pattern), 1))
