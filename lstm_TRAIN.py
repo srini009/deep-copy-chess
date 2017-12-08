@@ -1,6 +1,7 @@
 #Training hyperparameters
 #2000+: 300 moves, 7 sequence, 400 epochs, 2 LSTM layers of 250 neurons each, batch size as 8, dropout of 0.2
 #1600+: 300 moves, 5 sequence, 1000 epochs, 2 LSTM layers of 250 neurons each, batch size as 8, dropout of 0.2
+#1000+: 300 moves, 3 sequence, 1000 epochs, 2 LSTM layers of 250 neurons each, batch size as 8, dropout of 0.2
 import numpy, os, sys
 from keras.models import Sequential
 from keras.layers import Dense
@@ -56,7 +57,7 @@ print ("Total Moves: ", n_individual_moves)
 move_bidict, start_move_index = create_bidict(individual_moves)
 
 # prepare the dataset of input to output pairs encoded as integers
-seq_length = 5
+seq_length = 3
 dataX = []
 dataY = []
 for i in range(0, n_individual_moves - seq_length, 1):
@@ -85,7 +86,7 @@ model.add(LSTM(250))
 model.add(Dropout(0.2))
 model.add(Dense(y.shape[1], activation='softmax'))
 # define the checkpoint
-filepath="weights_1600-2000.hdf5"
+filepath="weights_1000-1600.hdf5"
 # fit the model
 if(sys.argv[1] == 'T'):
 	checkpoint = ModelCheckpoint(filepath, monitor='loss', verbose=1, save_best_only=True, mode='min')
@@ -96,7 +97,7 @@ if(sys.argv[1] == 'T'):
 else:
 	model.load_weights(filepath)
 	model.compile(loss='categorical_crossentropy', optimizer='adam')
-	pattern = dataX[9]
+	pattern = dataX[1]
 	print ("Selected input pattern ID and string: ", pattern, [move_bidict.inv[x] for x in pattern])
 
 	x = numpy.reshape(pattern, (1, len(pattern), 1))
