@@ -1,4 +1,6 @@
-import numpy, os
+#Training hyperparameters
+#2000+: 3000 moves, 7 sequence, 300 epochs, 2 LSTM layers of 250 neurons each, batch size as 8, dropout of 0.2
+import numpy, os, sys
 from keras.models import Sequential
 from keras.layers import Dense
 from keras.layers import Dropout
@@ -88,17 +90,18 @@ filepath="weights.hdf5"
 checkpoint = ModelCheckpoint(filepath, monitor='loss', verbose=1, save_best_only=True, mode='min')
 callbacks_list = [checkpoint]
 # fit the model
-model.fit(X, y, epochs=200, batch_size=8, callbacks=callbacks_list)
+if(sys.argv[1] == 'T'):
+	model.fit(X, y, epochs=200, batch_size=8, callbacks=callbacks_list)
+else:
+	#Generate
+	pattern = dataX[15]
+	print ("Selected input pattern ID and string: ", pattern, [move_bidict.inv[x] for x in pattern])
 
-#Generate
-pattern = dataX[15]
-print ("Selected input pattern ID and string: ", pattern, [move_bidict.inv[x] for x in pattern])
-
-x = numpy.reshape(pattern, (1, len(pattern), 1))
-x = x / float(len(move_bidict))
-prediction = model.predict(x, verbose=0)
-index = numpy.argmax(prediction)
-result = move_bidict.inv[index]
-print ("Predicted board: ", result)
+	x = numpy.reshape(pattern, (1, len(pattern), 1))
+	x = x / float(len(move_bidict))
+	prediction = model.predict(x, verbose=0)
+	index = numpy.argmax(prediction)
+	result = move_bidict.inv[index]
+	print ("Predicted board: ", result)
 
 print ("\nDone.")
